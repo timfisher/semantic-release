@@ -194,6 +194,28 @@ test('Read options from .releaserc.js', async (t) => {
   t.deepEqual(t.context.plugins.args[0][0], {options: expected, cwd});
 });
 
+test('Read options from .releaserc.cjs', async (t) => {
+  // Create a git repository, set the current working directory at the root of the repo
+  const {cwd} = await gitRepo();
+  const options = {
+    analyzeCommits: {path: 'analyzeCommits', param: 'analyzeCommits_param'},
+    branches: ['test_branch'],
+    repositoryUrl: 'https://host.null/owner/module.git',
+    tagFormat: `v\${version}`,
+    plugins: false,
+  };
+  // Create .releaserc.cjs in repository root
+  await writeFile(path.resolve(cwd, '.releaserc.cjs'), `module.exports = ${JSON.stringify(options)}`);
+
+  const {options: result} = await t.context.getConfig({cwd});
+
+  const expected = {...options, branches: ['test_branch']};
+  // Verify the options contains the plugin config from .releaserc.cjs
+  t.deepEqual(result, expected);
+  // Verify the plugins module is called with the plugin options from .releaserc.cjs
+  t.deepEqual(t.context.plugins.args[0][0], {options: expected, cwd});
+});
+
 test('Read options from release.config.js', async (t) => {
   // Create a git repository, set the current working directory at the root of the repo
   const {cwd} = await gitRepo();
@@ -213,6 +235,28 @@ test('Read options from release.config.js', async (t) => {
   // Verify the options contains the plugin config from package.json
   t.deepEqual(result, expected);
   // Verify the plugins module is called with the plugin options from package.json
+  t.deepEqual(t.context.plugins.args[0][0], {options: expected, cwd});
+});
+
+test('Read options from release.config.cjs', async (t) => {
+  // Create a git repository, set the current working directory at the root of the repo
+  const {cwd} = await gitRepo();
+  const options = {
+    analyzeCommits: {path: 'analyzeCommits', param: 'analyzeCommits_param'},
+    branches: ['test_branch'],
+    repositoryUrl: 'https://host.null/owner/module.git',
+    tagFormat: `v\${version}`,
+    plugins: false,
+  };
+  // Create release.config.cjs in repository root
+  await writeFile(path.resolve(cwd, 'release.config.cjs'), `module.exports = ${JSON.stringify(options)}`);
+
+  const {options: result} = await t.context.getConfig({cwd});
+
+  const expected = {...options, branches: ['test_branch']};
+  // Verify the options contains the plugin config from release.config.cjs
+  t.deepEqual(result, expected);
+  // Verify the plugins module is called with the plugin options from release.config.cjs
   t.deepEqual(t.context.plugins.args[0][0], {options: expected, cwd});
 });
 
